@@ -1,1 +1,1 @@
-main = print $ sum $ filter (\x -> any (==0) $ map (mod x) [3,5]) [1..999]
+main = print $ sum $ filter (\x -> any ((==0) . mod x) [3,5]) [1..999]

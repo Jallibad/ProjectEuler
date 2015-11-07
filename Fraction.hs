@@ -28,6 +28,15 @@ instance Num Fraction where
 	(Fraction a b) + (Fraction c d) = simplify $ Fraction (a*d+b*c) (b*d)
 	(Fraction a b) * (Fraction c d) = simplify $ Fraction (a*c) (b*d)
 	abs (Fraction a b) = Fraction (abs a) (abs b)
-	signum (_) = Fraction 1 1 --TODO: Fix
+	signum (Fraction a b) = Fraction (signum a * signum b) 1
 	fromInteger n = Fraction n 1
 	negate (Fraction a b) = Fraction (-a) b
+
+nextFarey :: Integer -> Fraction -> Fraction -> Fraction
+nextFarey n (Fraction a b) (Fraction c d) = Fraction p q
+	where
+		k = (n+b) `div` d
+		p = k*c-a
+		q = k*d-b
+
+fareyLength n = (n+3)*n `div` 2 - (sum $ map (\d -> fareyLength $ floor (n `div` d)) [2..n])
