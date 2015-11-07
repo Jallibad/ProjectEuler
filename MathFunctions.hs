@@ -9,11 +9,10 @@ isqrt 1 = 1
 isqrt n = head $ dropWhile (\x -> x*x > n) $ iterate (\x -> (x + n `div` x) `div` 2) (n `div` 2)
 
 isPrime :: Integral (a) => a -> Bool
-isPrime 1 = False
-isPrime (-1) = False
-isPrime 0 = False
-isPrime realNumber = all ((/=) 0 . mod number) [2..isqrt number]
-	where number = abs realNumber
+isPrime realNumber = case abs realNumber of
+				0 -> False
+				1 -> False
+				number -> all ((/=) 0 . mod number) [2..isqrt number]
 
 primes :: [Integer]
 primes = filter isPrime [1..]
@@ -34,7 +33,16 @@ factorization =	unfoldr (\x ->	if x==1 then
 					Just (firstPrime, x `div` firstPrime)
 			)
 
+factorial :: Integral (a) => a -> a
+factorial 0 = 1
+factorial n = product [1..n]
+
 factorials = 1 : 1 : scanl1 (*) [2..]
 
 digitFactorial :: Integral (a) => Show (a) => a -> Int
 digitFactorial number = sum $ map (\x -> factorials !! digitToInt x) $ show number
+
+combinatoric :: Integral (a) => a -> a -> a
+combinatoric n r = (factorial n) `div` ((factorial (n-r))*(factorial r))
+
+fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
