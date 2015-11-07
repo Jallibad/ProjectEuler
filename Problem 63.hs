@@ -1,0 +1,1 @@
+main = print $ sum $ takeWhile (/=0) $ map (\n -> length $ takeWhile (<10^n) $ dropWhile (<10^(n-1)) $ map (^n) [1..]) [1..]
