@@ -1,9 +1,7 @@
 import Data.List
 import MathFunctions
 
-primeFactorLengths = map (length . distinctPrimeFactors) [1..]
-
 distinctPrimeFactorsGenerator :: Int -> Int
-distinctPrimeFactorsGenerator d = until (\x -> all (==d) $ take d $ drop (x-1) primeFactorLengths) (+1) 1
+distinctPrimeFactorsGenerator d = fst $ until (all (==d) . take d . snd) (\(x, (_:ps)) -> (x+1, ps)) (1, map (length . distinctPrimeFactors) [1..])
 
 main = print $ distinctPrimeFactorsGenerator 4
