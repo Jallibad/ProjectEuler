@@ -24,8 +24,10 @@ factors number = lowerFactors ++ if isSquare number then (tail upperFactors) els
 	where	lowerFactors = filter ((==0) . rem number) [1..isqrt number]
 		upperFactors = reverse (map (div number) lowerFactors)
 
-primeFactors :: Integral (a) => a -> [a]
-primeFactors number = filter isPrime (factors number)
+primeFactors :: Integer -> [Integer]
+primeFactors n = reverse $ fst $ until ((==1) . snd) (\(p, x) -> let f = head $ dropWhile ((/=0) . (x `mod`)) primes in (f:p, x `div` f)) ([], n)
+
+distinctPrimeFactors = nub . primeFactors
 
 factorization :: Integer -> [Integer]
 factorization =	unfoldr (\x ->	if x==1 then
