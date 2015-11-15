@@ -1,7 +1,5 @@
 memoize = {};
-def partitions(number):
-    return countSumsR(1, number);
-def countSumsR(m, n):
+def partitions(n, m=1):
     if n < 0:
         return 0
     elif n == 0:
@@ -11,14 +9,10 @@ def countSumsR(m, n):
     else:
         answer = 0
         for i in range(m, n+1):
-            answer += countSumsR(i, n-i)
+            answer += partitions(n-i, i)
         memoize[(m, n)] = answer
         return answer
 k = 4
-while True:
-    current = partitions(k)
-    if current % (10**3) == 0:
-        break
-    print(current)
-    k+=5
+for i in range(10):
+    print(partitions(i))
 print(k)
