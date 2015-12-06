@@ -26,3 +26,18 @@ orderedUnion = loop
           LT -> x : loop xs (y:ys)
           EQ -> x : loop xs ys
           GT -> y : loop (x:xs) ys
+
+differences [] = []
+differences (_:[]) = []
+differences (x:y:xs) = (y-x) : differences (y:xs)
+
+allEqual :: Eq (a) => [a] -> Bool
+allEqual [] = True
+allEqual (x:xs) = all (==x) xs
+
+pick :: Int -> [a] -> [[a]]
+pick 0 _ = [[]]
+pick _ [] = []
+pick n list@(x:xs)
+	| length list < n = []
+	| otherwise = concat [map (x:) $ pick (n-1) xs, pick n xs]
