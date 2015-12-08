@@ -1,5 +1,7 @@
 module ListFunctions where
 
+import Debug.Trace
+
 takeUntil :: (a -> Bool) -> [a] -> [a]
 takeUntil _ [] = []
 takeUntil f (x:xs) = case (f x) of
@@ -38,6 +40,4 @@ allEqual (x:xs) = all (==x) xs
 pick :: Int -> [a] -> [[a]]
 pick 0 _ = [[]]
 pick _ [] = []
-pick n list@(x:xs)
-	| length list < n = []
-	| otherwise = concat [map (x:) $ pick (n-1) xs, pick n xs]
+pick n list@(x:xs) = (map (x:) $ pick (n-1) xs)++(pick n xs)
