@@ -15,7 +15,7 @@ isPrime realNumber = case abs realNumber of
 				number -> all ((/=) 0 . mod number) [2..isqrt number]
 
 primes :: [Integer]
-primes = filter isPrime [1..]
+primes = 2 : filter isPrime [3,5..]
 
 isSquare n = (isqrt n)^2 == n
 
