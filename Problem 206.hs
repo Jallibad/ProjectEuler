@@ -1,10 +1,6 @@
 import Data.List
 import Control.Applicative
-
-isqrt :: Integral (a) => a -> a
-isqrt 0 = 0
-isqrt 1 = 1
-isqrt n = head $ dropWhile (\x -> x*x > n) $ iterate (\x -> (x + n `div` x) `div` 2) (n `div` 2)
+import MathFunctions (isqrt)
 
 correct :: [Char] -> Bool
 correct ('1':_:'2':_:'3':_:'4':_:'5':_:'6':_:'7':_:'8':_:'9':_:'0':[]) = True

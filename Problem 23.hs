@@ -1,11 +1,10 @@
-import Data.List
-import qualified Data.Map as Map
-import MathFunctions
+import qualified Data.Set as Set
+import MathFunctions (factors)
 
 abundants = filter (\x -> (sum $ init $ factors x) > x) [1..28123-12]
 
-abundantMap = Map.fromDistinctAscList $ zip abundants $ repeat 0
+abundantSet = Set.fromDistinctAscList abundants
 
-isAbundantSum x = any (\i -> Map.member (x-i) abundantMap) $ takeWhile (<x) abundants
+isAbundantSum x = any (\i -> Set.member (x-i) abundantSet) $ takeWhile (<x) abundants
 
 main = print $ sum $ filter (not . isAbundantSum) [1..28123]

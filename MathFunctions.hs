@@ -3,6 +3,8 @@ module MathFunctions where
 import Data.List
 import Data.Char (digitToInt)
 
+import ListFunctions (circulateList)
+
 isqrt :: Integral (a) => a -> a
 isqrt 0 = 0
 isqrt 1 = 1
@@ -13,6 +15,15 @@ isPrime realNumber = case abs realNumber of
 				0 -> False
 				1 -> False
 				number -> all ((/=) 0 . mod number) [2..isqrt number]
+
+isCircularPrime :: Integral (a) => Show (a) => a -> Bool
+isCircularPrime number = (length string == 1 || invalids \\ string == invalids) && (all (isPrime . read) $ circulateList string)
+	where	invalids = "024568"
+		string = show number
+
+isTruncatablePrime :: Integral (a) => Show (a) => a -> Bool
+isTruncatablePrime n = (n >= 10) && (all (isPrime . read) $ (tail $ inits s)++(init $ tails s))
+	where s = show n
 
 primes :: [Integer]
 primes = 2 : filter isPrime [3,5..]

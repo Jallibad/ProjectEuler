@@ -1,6 +1,6 @@
 module ListFunctions where
 
-import Debug.Trace
+import Data.List (inits, tails)
 
 takeUntil :: (a -> Bool) -> [a] -> [a]
 takeUntil _ [] = []
@@ -41,3 +41,6 @@ pick :: Int -> [a] -> [[a]]
 pick 0 _ = [[]]
 pick _ [] = []
 pick n list@(x:xs) = (map (x:) $ pick (n-1) xs)++(pick n xs)
+
+circulateList :: [a] -> [[a]]
+circulateList list = tail $ zipWith (++) (tails list) (inits list)

@@ -1,5 +1,4 @@
-import Data.List
-import ListFunctions
+import ListFunctions (isPalindrome)
 
 
-main = print $ maximum $ filter (isPalindrome . show) [a*b | a <- [100..999], b <- [100..999]]
+main = print $ maximum $ filter (isPalindrome . show) [a*b | a <- [999,998..10], b <- [999,998..a]]
