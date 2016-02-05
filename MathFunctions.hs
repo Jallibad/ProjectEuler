@@ -3,6 +3,8 @@ module MathFunctions where
 import Data.List
 import Data.Char (digitToInt)
 
+import ListFunctions (circulateList)
+
 isqrt :: Integral (a) => a -> a
 isqrt 0 = 0
 isqrt 1 = 1
@@ -14,16 +16,29 @@ isPrime realNumber = case abs realNumber of
 				1 -> False
 				number -> all ((/=) 0 . mod number) [2..isqrt number]
 
+isCircularPrime :: Integral (a) => Show (a) => a -> Bool
+isCircularPrime number = (length string == 1 || invalids \\ string == invalids) && (all (isPrime . read) $ circulateList string)
+	where	invalids = "024568"
+		string = show number
+
+isTruncatablePrime :: Integral (a) => Show (a) => a -> Bool
+isTruncatablePrime n = (n >= 10) && (all (isPrime . read) $ (tail $ inits s)++(init $ tails s))
+	where s = show n
+
 primes :: [Integer]
-primes = filter isPrime [1..]
+primes = 2 : filter isPrime [3,5..]
+
+isSquare n = (isqrt n)^2 == n
 
 factors :: Integral (a) => a -> [a]
-factors number = lowerFactors ++ if ((head upperFactors)^2 == number) then (tail upperFactors) else upperFactors
+factors number = lowerFactors ++ if isSquare number then (tail upperFactors) else upperFactors
 	where	lowerFactors = filter ((==0) . rem number) [1..isqrt number]
 		upperFactors = reverse (map (div number) lowerFactors)
 
-primeFactors :: Integral (a) => a -> [a]
-primeFactors number = filter isPrime (factors number)
+primeFactors :: Integer -> [Integer]
+primeFactors n = reverse $ fst $ until ((==1) . snd) (\(p, x) -> let f = head $ dropWhile ((/=0) . (x `mod`)) primes in (f:p, x `div` f)) ([], n)
+
+distinctPrimeFactors = nub . primeFactors
 
 factorization :: Integer -> [Integer]
 factorization =	unfoldr (\x ->	if x==1 then
