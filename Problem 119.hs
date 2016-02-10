@@ -19,6 +19,6 @@ isA n
 --powers n previous = x ++ (orderedUnion xs $ powers (n+1))
 --	where	(x,xs) = span (<=2^(n+1)) previous
 
-powers = foldl1 orderedUnion $ map (\x -> map (^x) [1..10^7]) [2..50]
+powers = foldl1 orderedUnion $ map (\x -> map (^x) [1..10^4]) [2..10]
 
 main = print $ (filter isA powers) !! (30-1)
