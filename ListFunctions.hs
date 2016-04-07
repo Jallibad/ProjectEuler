@@ -1,6 +1,8 @@
 module ListFunctions where
 
 import Data.List (inits, tails)
+import qualified Data.Array as Array (indices, elems, listArray, (//), (!))
+import Data.Maybe (fromJust)
 
 takeUntil :: (a -> Bool) -> [a] -> [a]
 takeUntil _ [] = []
@@ -44,3 +46,18 @@ pick n list@(x:xs) = (map (x:) $ pick (n-1) xs)++(pick n xs)
 
 circulateList :: [a] -> [[a]]
 circulateList list = tail $ zipWith (++) (tails list) (inits list)
+
+orderedPermutations :: Ord (a) => [a] -> [[a]]
+orderedPermutations xs = (map (Array.elems . fromJust) $ takeWhile (/=Nothing) $ iterate (>>= nextPermutation) $ Just $ Array.listArray (0, n) xs)
+	where	nextPermutation a
+			| null kList = Nothing
+			| otherwise = Just $ Array.listArray (0, n) $ map (\x -> (a Array.// [(k, a Array.! l), (l, a Array.! k)]) Array.! x) $ [0..k]++[n, n-1.. k+1]
+			where	kList = filter (\x -> (a Array.! x)<(a Array.! (x+1))) $ init $ Array.indices a
+				k = last kList
+				l = last $ filter (\x -> (a Array.! k)<(a Array.! x)) $ dropWhile (<=k) $ Array.indices a
+		n = length xs - 1
+
+takePairs :: [a] -> [(a,a)]
+takePairs [] = []
+takePairs (_:[]) = []
+takePairs (x1:x2:xs) = (x1,x2) : takePairs (x2:xs)
