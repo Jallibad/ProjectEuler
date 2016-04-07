@@ -48,13 +48,15 @@ circulateList :: [a] -> [[a]]
 circulateList list = tail $ zipWith (++) (tails list) (inits list)
 
 orderedPermutations :: Ord (a) => [a] -> [[a]]
-orderedPermutations xs = (map (Array.elems . fromJust) $ takeWhile (/=Nothing) $ iterate (>>= nextPermutation) $ Just $ Array.listArray (0, n) xs)
+orderedPermutations xs = xs : (nextPermutation $ Array.listArray (0, n) xs)
 	where	nextPermutation a
-			| null kList = Nothing
-			| otherwise = Just $ Array.listArray (0, n) $ map (\x -> (a Array.// [(k, a Array.! l), (l, a Array.! k)]) Array.! x) $ [0..k]++[n, n-1.. k+1]
-			where	kList = filter (\x -> (a Array.! x)<(a Array.! (x+1))) $ init $ Array.indices a
+			| null kList = []
+			| otherwise = answer : (nextPermutation $ Array.listArray (0, n) answer)
+			where	kList = filter (\x -> (a Array.! x)<(a Array.! (x+1))) [0..n-1]
 				k = last kList
-				l = last $ filter (\x -> (a Array.! k)<(a Array.! x)) $ dropWhile (<=k) $ Array.indices a
+				l = last $ filter (\x -> (a Array.! k)<(a Array.! x)) $ dropWhile (<=k) [0..n]
+				swapped = (a Array.// [(k, a Array.! l), (l, a Array.! k)])
+				answer = (take (k+1) $ Array.elems swapped)++(reverse $ drop (k+1) $ Array.elems swapped)
 		n = length xs - 1
 
 takePairs :: [a] -> [(a,a)]
