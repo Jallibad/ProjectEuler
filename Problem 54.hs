@@ -1,6 +1,7 @@
 import Data.List
 import Data.Maybe
 import Data.Function
+import Debug.Trace
 
 data Value = C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | J | Q | K | A
 	deriving (Eq, Ord, Bounded, Enum)
@@ -49,7 +50,10 @@ straightFlush hand = null $ shouldBe \\ hand
 		shouldBe = zipWith Card [value1..] (replicate 5 suit1)
 
 fourOfAKind :: Hand -> Bool
-fourOfAKind hand = any ((==) 4 . length) $ groupBy ((==) `on` value) $ sort hand
+fourOfAKind hand = any ((==) 4 . length) $ group $ sort hand
+
+fullHouse :: Hand -> Bool
+fullHouse hand = [2,3] == (sort $ map length $ group $ sort $ map value hand)
 
 flush :: Hand -> Bool
 flush hand = all ((==) suit1 . suit) hand
@@ -60,14 +64,52 @@ straight hand = (take 5 [head sorted..]) == sorted
 	where sorted = sort $ map value hand
 
 threeOfAKind :: Hand -> Bool
-threeOfAKind hand = any ((==) 3 . length) $ groupBy ((==) `on` value) $ sort hand
-
-onePair :: Hand -> Bool
-onePair hand = (length $ filter (>=2) $ map length $ group $ sort $ map value hand) == 1
+threeOfAKind hand = any ((==3) . length) $ group $ map value $ sort hand
 
 twoPairs :: Hand -> Bool
 twoPairs hand = (length $ filter (>=2) $ map length $ group $ sort $ map value hand) == 2
 
+onePair :: Hand -> Bool
+onePair hand = any ((==2) . length) $ group $ map value $ sort hand
+
+pairRank :: Hand -> Value
+pairRank = head . head . filter ((==2) . length) . group . sort . map value
+
+valueCompare :: Hand -> Hand -> Ordering
+valueCompare [] _ = EQ
+valueCompare _ [] = EQ
+valueCompare (x:xs) (y:ys)
+	| x /= y = compare x y
+	| otherwise = valueCompare xs ys
+
+pairCompare :: Hand -> Hand -> Ordering
+pairCompare h1 h2 = if p1 == p2 then valueCompare h1 h2 else compare p1 p2
+	where	p1 = pairRank h1
+		p2 = pairRank h2
+
+--GT means h1 won
+handCompare :: Hand -> Hand -> Ordering
+handCompare h1 h2
+	| royalFlush h1 = GT
+	| royalFlush h2 = LT
+	| straightFlush h1 = if straightFlush h2 then EQ else GT
+	| straightFlush h2 = LT
+	| fourOfAKind h1 = if fourOfAKind h2 then EQ else GT
+	| fourOfAKind h2 = LT
+	| fullHouse h1 = if fullHouse h2 then EQ else GT
+	| fullHouse h2 = LT
+	| flush h1 = if flush h2 then EQ else GT
+	| flush h2 = LT
+	| straight h1 = if straight h2 then EQ else GT
+	| straight h2 = LT
+	| threeOfAKind h1 = if threeOfAKind h2 then EQ else GT
+	| threeOfAKind h2 = LT
+	| twoPairs h1 = if twoPairs h2 then EQ else GT
+	| twoPairs h2 = LT
+	| onePair h1 = if onePair h2 then pairCompare h1 h2 else GT
+	| onePair h2 = LT
+	|otherwise = compare (maximum h1) (maximum h2)
+
 main = do
 	file <- readFile "Problem 54 Poker Hands.txt"
-	print $ head $ map (splitAt 5 . map readCard . words) $ lines file
+	print $ map (uncurry handCompare . splitAt 5 . map readCard . words) $ lines file
