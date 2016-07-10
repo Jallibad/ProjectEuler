@@ -1,7 +1,5 @@
 import Data.List
-
-takeLast :: Int -> [a] -> [a]
-takeLast number list = drop (length list - number) list
+import ListFunctions
 
 singles = ['0'..'9']
 

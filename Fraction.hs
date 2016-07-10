@@ -40,3 +40,5 @@ nextFarey n (Fraction a b) (Fraction c d) = Fraction p q
 		q = k*d-b
 
 fareyLength n = (n+3)*n `div` 2 - (sum $ map (\d -> fareyLength $ floor (n `div` d)) [2..n])
+
+mediant (Fraction a b) (Fraction c d) = Fraction (a+c) (b+d)

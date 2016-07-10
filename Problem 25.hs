@@ -1,3 +1,3 @@
-fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
+import MathFunctions
 
-main = print $ until ((==) 1000 . length . show . (!!) fibs) (+1) 1
+main = print $ fst $ head $ until ((==1000) . length . show . snd . head) tail $ zip [0..] fibs

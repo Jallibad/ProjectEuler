@@ -1,9 +1,4 @@
-import Data.List
+import ListFunctions (isPalindrome)
 
-isPalindrome number = first == second
-	where	stringForm = show number
-		half = (length stringForm) `div` 2
-		first = take half stringForm
-		second = take half $ reverse stringForm
 
-main = print $ last $ sort $ filter isPalindrome [a*b | a <- [1..999], b <- [1..999]]
+main = print $ maximum $ filter (isPalindrome . show) [a*b | a <- [999,998..10], b <- [999,998..a]]
