@@ -50,13 +50,13 @@ straightFlush hand = null $ shouldBe \\ hand
 		shouldBe = zipWith Card [value1..] (replicate 5 suit1)
 
 fourOfAKind :: Hand -> Bool
-fourOfAKind hand = any ((==) 4 . length) $ group $ sort hand
+fourOfAKind hand = any ((==4) . length) $ group $ map value $ sort hand
 
 fullHouse :: Hand -> Bool
-fullHouse hand = [2,3] == (sort $ map length $ group $ sort $ map value hand)
+fullHouse hand = [2,3] == (sort $ map length $ group $ map value $ sort hand)
 
 flush :: Hand -> Bool
-flush hand = all ((==) suit1 . suit) hand
+flush hand = all ((==suit1) . suit) hand
 	where suit1 = suit $ head hand
 
 straight :: Hand -> Bool
@@ -64,7 +64,7 @@ straight hand = (take 5 [head sorted..]) == sorted
 	where sorted = sort $ map value hand
 
 threeOfAKind :: Hand -> Bool
-threeOfAKind hand = any ((==3) . length) $ group $ map value $ sort hand
+threeOfAKind = any ((==3) . length) . group . map value . sort
 
 twoPairs :: Hand -> Bool
 twoPairs hand = (length $ filter (>=2) $ map length $ group $ sort $ map value hand) == 2
@@ -90,7 +90,7 @@ pairCompare h1 h2 = if p1 == p2 then valueCompare h1 h2 else compare p1 p2
 --GT means h1 won
 handCompare :: Hand -> Hand -> Ordering
 handCompare h1 h2
-	| royalFlush h1 = GT
+	| royalFlush h1 = if royalFlush h2 then EQ else GT
 	| royalFlush h2 = LT
 	| straightFlush h1 = if straightFlush h2 then EQ else GT
 	| straightFlush h2 = LT
@@ -112,4 +112,4 @@ handCompare h1 h2
 
 main = do
 	file <- readFile "Problem 54 Poker Hands.txt"
-	print $ map (uncurry handCompare . splitAt 5 . map readCard . words) $ lines file
+	print $ length $ filter (==EQ) $ map (uncurry handCompare . splitAt 5 . map readCard . words) $ lines file
