@@ -112,4 +112,4 @@ handCompare h1 h2
 
 main = do
 	file <- readFile "Problem 54 Poker Hands.txt"
-	print $ length $ filter (==EQ) $ map (uncurry handCompare . splitAt 5 . map readCard . words) $ lines file
+	print $ length $ map (uncurry handCompare . splitAt 5 . map readCard . words) $ lines file
