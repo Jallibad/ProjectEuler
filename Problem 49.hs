@@ -1,8 +1,8 @@
+import ListFunctions (allEqual, differences, pick)
+import MathFunctions (isPrime)
 import Data.List
-import MathFunctions
-import ListFunctions
 
 possibilities :: [[Int]]
-possibilities = map sort [nub $ filter isPrime $ map read $ permutations [a,b,c,d] | d <- ['4'..'9'], c <- ['3'..d], b <- ['2'..c], a <- ['1'..b]]
+possibilities = [nub $ sort $ filter isPrime $ map read $ permutations [a,b,c,d] | d <- ['4'..'9'], c <- ['3'..d], b <- ['2'..c], a <- ['1'..b]]
 
-main = print $ (map (concatMap show) $ filter (allEqual . differences) $ concatMap (pick 3) possibilities) \\ ["148748178147"]
+main = print $ delete "148748178147" [concatMap show x | x <- concatMap (pick 3) possibilities, allEqual $ differences x]

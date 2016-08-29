@@ -1,7 +1,4 @@
-import Data.List
+import ListFunctions (allEqual)
+import Data.List (sort)
 
-allTheSame :: Eq (a) => [a] -> Bool
-allTheSame [] = True
-allTheSame (x:xs) = all (==x) xs
-
-main = print $ until (\x -> allTheSame $ map (\y -> sort $ show $ y*x) [1..6]) (+1) 1
+main = print $ until (\x -> allEqual $ map (sort . show . (x*)) [1..6]) (+1) 1

@@ -1,4 +1,5 @@
 import MathFunctions (isPrime)
+import Data.Function (on)
 
 twiceSquares = map ((*2) . (^2)) [1..]
 

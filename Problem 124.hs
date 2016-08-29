@@ -1,6 +1,6 @@
-import MathFunctions
-import Data.List
-import Data.Ord
+import MathFunctions (distinctPrimeFactors)
+import Data.List (sortBy)
+import Data.Ord (comparing)
 
 rad = product . distinctPrimeFactors
 

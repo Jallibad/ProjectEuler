@@ -1,6 +1,5 @@
-import Data.List
-import Control.Applicative
-import MathFunctions
+import MathFunctions (isTruncatablePrime)
+import Control.Applicative ((<$>), (<*>))
 
 possibilities :: [Int]
 possibilities = map read $ concat $ iterate (\x -> (++) <$> x <*> singlePrimes) singlePrimes

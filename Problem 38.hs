@@ -1,11 +1,9 @@
-import Data.List
+import Data.List (sort)
 
 concatProduct :: Integral (a) => Show (a) => a -> a -> String
-concatProduct test n = concatMap (show . (*test)) [1..n]
+concatProduct n test = concatMap (show . (test*)) [1..n]
 
 valid :: String -> Bool
-valid n = (null $ ['1'..'9'] \\ n) && (length n == 9)
+valid n = sort n == ['1'..'9']
 
-
-
-main = print $ maximum $ filter valid (concatMap (\y -> takeWhile ((>) 10 . length) $ dropWhile ((>) 9 . length) $ map (\x -> concatProduct x y) [1..]) [2..9])
+main = print $ maximum $ filter valid (concatMap (\y -> takeWhile ((>) 10 . length) $ dropWhile ((>) 9 . length) $ map (concatProduct y) [1..]) [2..9])

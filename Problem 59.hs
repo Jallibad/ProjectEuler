@@ -1,6 +1,6 @@
-import Data.List.Split (splitOn)
-import Data.Char
 import Data.Bits (xor)
+import Data.Char
+import Data.List.Split (splitOn)
 
 keys = [[a,b,c] | a <- alphabet, b <- alphabet, c <- alphabet]
 	where alphabet = [ord 'a'.. ord 'z']

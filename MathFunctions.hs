@@ -1,14 +1,23 @@
 module MathFunctions where
 
-import Data.List
-import Data.Char (digitToInt)
-
 import ListFunctions (circulateList)
+
+import Data.Bits
+import Data.Char (digitToInt)
+import Data.List
 
 isqrt :: Integral (a) => a -> a
 isqrt 0 = 0
 isqrt 1 = 1
 isqrt n = head $ dropWhile (\x -> x*x > n) $ iterate (\x -> (x + n `div` x) `div` 2) (n `div` 2)
+
+amicable :: Integral (a) => a -> a
+amicable 0 = 0
+amicable n = sum $ init $ factors n
+
+isAmicable :: Integral (a) => a -> Bool
+isAmicable a = a == amicable b && a /= b
+	where b = amicable a
 
 isPrime :: Integral (a) => a -> Bool
 isPrime realNumber = case abs realNumber of
@@ -61,3 +70,6 @@ combinatoric :: Integral (a) => a -> a -> a
 combinatoric n r = (factorial n) `div` ((factorial (n-r))*(factorial r))
 
 fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
+
+intToBinary :: Integral (a) => Bits (a) => a -> [Bool]
+intToBinary n = map (testBit n) [0..truncate $ logBase 2 $ fromIntegral n]
