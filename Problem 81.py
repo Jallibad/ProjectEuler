@@ -11,7 +11,7 @@ def printMatrix(toPrint):
     for line in toPrint:
         temp = ""
         for number in line:
-            if(number <1000):
+            if(number < 1000):
                 temp += "0"
             if (number < 100):
                 temp += "0"
