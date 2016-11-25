@@ -1,12 +1,14 @@
+import Control.Arrow ((&&&))
+import Data.List (mapAccumL)
 import qualified Data.Map.Strict as Map
+import Data.Maybe (fromMaybe)
 
-tiles n = fst $ tiles' n $ Map.empty
+tiles n = snd $ tiles' n $ Map.empty
 	where	tiles' n m
-			| n < 3 = (1, m)
-			| n `Map.member` m = (m Map.! n, m)
-			| otherwise = (ans, Map.insert n ans $ snd $ last xs)
-				where	(singleAns, singleM) = tiles' (n-1) m
-					xs = scanl (\(_, m') i -> tiles' (if i < n then n-i-1 else n-i) m') (0, singleM) [3..n]
-					ans = (sum $ map fst xs)+singleAns
+			| n < 3 = (m, 1)
+			| otherwise = fromMaybe (Map.insert n ans m'', ans) memoizePart
+				where	memoizePart = fmap (const m &&& id) $ Map.lookup n m
+					(m'', a) = mapAccumL (\m' i -> tiles' (if i < n then n-i-1 else n-i) m') m $ 0:[3..n]
+					ans = sum a
 
 main = print $ tiles 50
