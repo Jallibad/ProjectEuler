@@ -1,5 +1,10 @@
 import Data.Function
 import Fraction
 
-main = print $ length $ takeWhile (< (Fraction 1 2)) $ dropWhile (<= (Fraction 1 3)) $ map snd $ iterate (\(f1, f2) -> (f2, nextFarey n f1 f2)) ((Fraction 0 1), (Fraction 1 n))
-	where n = 12000
+fractionsBetween :: Fraction -> Fraction -> Integer -> Integer
+fractionsBetween f1 f2 dBound
+	| denominator m > dBound = 0
+	| otherwise = (fractionsBetween f1 m dBound)+(fractionsBetween m f2 dBound)+1
+	where m = mediant f1 f2
+
+main = print $ fractionsBetween (Fraction 1 3) (Fraction 1 2) 12000

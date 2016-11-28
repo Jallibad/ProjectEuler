@@ -1,11 +1,11 @@
-import Fraction
-import Data.List (groupBy, sortBy)
-import Data.Ord (comparing)
+import Control.Applicative
 import Data.Function (on)
+import Data.List (groupBy, sortOn)
+import Fraction
 import Text.Printf (printf)
 
 simplifyList :: Integral (a) => [(a, Fraction)] -> [(a, Fraction)]
-simplifyList = map (foldr1 (\(v, p1) (_, p2) -> (v, p1+p2))) . groupBy ((==) `on` fst) . sortBy (comparing fst)
+simplifyList = map (foldr1 (\(v, p1) (_, p2) -> (v, p1+p2))) . groupBy ((==) `on` fst) . sortOn fst
 
 rollProbabilities options rolls = (iterate (\prob -> simplifyList [(v1+v2, p1*p2) | (v1, p1) <- prob, (v2, p2) <- options]) options) !! (rolls-1)
 
