@@ -1,15 +1,11 @@
-import qualified Data.Map.Strict as Map
 import Data.List (maximumBy)
+import qualified Data.Map.Strict as Map
 import Data.Ord (comparing)
-import MathFunctions (isqrt, isSquare)
 
 addNumber :: Int -> Map.Map Int Int -> Map.Map Int Int
-addNumber n map =
-	if n `Map.member` map
-	then Map.update (Just . (+) 1) n map
-	else Map.insert n 1 map
+addNumber n map = Map.insertWith (+) n 1 map
 
 triangleNumbers :: [Int]
-triangleNumbers = [p | a <- [1..1000], b <- [1..a-1], let c=a^2+b^2, isSquare c, let p=a+b+ isqrt c, p<=1000]
+triangleNumbers = concatMap (\x -> takeWhile (<1000) $ map (*x) [1..]) $ takeWhile (<1000) [2*m*(m+n) | m <- [1..], n <- [(ceiling $ (sqrt 2)*(fromIntegral $ abs m))-m..m-1]]
 
 main = print $ fst $ maximumBy (comparing snd) $ Map.toList $ foldr addNumber Map.empty triangleNumbers
