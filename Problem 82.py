@@ -63,7 +63,7 @@ def shortestPath(graph, origin, destination):
     return visited[destination], list(full_path)
 
 matrix = []
-with open("Problem 81 Matrix.txt") as file:
+with open("Problem 82 Matrix.txt") as file:
     for line in file:
         line = line.split(",")
         line = [int(x) for x in line]
@@ -72,10 +72,16 @@ with open("Problem 81 Matrix.txt") as file:
 g = Graph()
 g.addNode((-1,-1))
 for y in range(len(matrix)):
+    g.addEdge((-1,-1),(y,0),matrix[y][0])
     for x in range(len(matrix[y])):
         g.addNode((y,x))
         g.addEdge((y-1,x),(y,x),matrix[y][x])
+        g.addEdge((y+1,x),(y,x),matrix[y][x])
         g.addEdge((y,x-1),(y,x),matrix[y][x])
 
-g.addEdge((-1,-1),(0,0),matrix[0][0])
-print(shortestPath(g,(-1,-1),(len(matrix)-1,len(matrix)-1))[0])
+ans = dijkstra(g,(-1,-1))[0]
+finalAns = ans[(0,len(matrix)-1)]
+for y in range(len(matrix)):
+    finalAns = min(finalAns,ans[(y,len(matrix)-1)])
+
+print(finalAns)
