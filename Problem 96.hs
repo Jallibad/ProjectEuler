@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections, TemplateHaskell #-}
+{-# LANGUAGE TupleSections, TemplateHaskell, ParallelListComp #-}
 
 import Control.Applicative
 import Control.Lens
@@ -7,8 +7,9 @@ import Data.Array
 import Data.Bifunctor
 import Data.Char
 import Data.Either
-import Data.Foldable (foldr')
+import Data.Foldable (foldr', find)
 import Data.List.Split
+import Data.Maybe (fromMaybe)
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
@@ -66,10 +67,15 @@ removeLinesAndGrids (Sudoku grid) = Sudoku $ accum removeOption grid $ concat ro
 
 --completeLoneNumberLinesAndGrids :: Sudoku -> Sudoku
 --completeLoneNumberLinesAndGrids
---Map.keys $ Map.filter (== Just 1) $ Map.unionsWith (liftA2 (+)) $ map toMap $ getGridSquares (getRow (0,0))
+--findLoner
+findLoners y = Map.keysSet . Map.filter (== Just 1) . Map.unionsWith (liftA2 (+)) . map toMap . view (rowLens y)
+setIf :: Set.Set Int -> GridSquare -> GridSquare
+setIf x s = fromMaybe s $ fmap Completed $ find (const True) $ Set.intersection x $ s^.uncompleted
 
 toMap (Completed x) = Map.adjust (const Nothing) x $ Map.fromAscList $ zip [1..9] $ repeat $ Just 0
 toMap (Uncompleted set) = Map.fromSet (const $ Just 1) set
+
+fix y grid lens = over (lens y) (map $ setIf $ findLoners y grid) grid
 
 --type GridGetter = Setter' Sudoku GridSquare
 
@@ -92,6 +98,21 @@ sudokuLens i = lens getter const--setter
 	where
 		getter (Sudoku board) = board ! i
 		--setter (Sudoku board) gridSquare = 
+
+singleLens i = lens getter setter
+	where
+		getter (Sudoku grid) = grid ! i
+		setter (Sudoku grid) v = Sudoku $ grid // [(i, v)]
+
+rowLens y = lens getter setter
+	where
+		getter (Sudoku grid) = elems $ ixmap ((0,y),(8,y)) id $ grid
+		setter (Sudoku grid) vs = Sudoku $ grid // [((x,y),v) | x <- [0..8] | v <- vs]
+
+columnLens x = lens getter setter
+	where
+		getter (Sudoku grid) = elems $ ixmap ((x,0),(x,8)) id $ grid
+		setter (Sudoku grid) vs = Sudoku $ grid // [((x,y),v) | y <- [0..8] | v <- vs]
 
 fillRow ((x,y),a) = map ((,a) . (,y)) [0..8]
 fillColumn ((x,y),a) = map ((,a) . (x,)) [0..8]
