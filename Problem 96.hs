@@ -1,5 +1,8 @@
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TupleSections, TemplateHaskell #-}
 
+import Control.Applicative
+import Control.Lens
+import Control.Lens.Setter
 import Data.Array
 import Data.Bifunctor
 import Data.Char
@@ -9,30 +12,32 @@ import Data.List.Split
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
-newtype GridSquare = GridSquare (Either Int (Set.Set Int))
+data GridSquare = Completed {_completed :: Int} | Uncompleted {_uncompleted :: Set.Set Int}
 
-constructGridSquare :: Either Int (Set.Set Int) -> GridSquare
-constructGridSquare (Right set)
-	| Set.size set == 1 = GridSquare $ Left $ Set.findMax set
-	| otherwise = GridSquare $ Right set
-constructGridSquare x = GridSquare x
+makeLenses ''GridSquare
+
+--instance Bifunctor GridSquare 
+
+constructGridSquare :: Set.Set Int -> GridSquare
+constructGridSquare set
+	| Set.size set == 1 = Completed $ Set.findMax set
+	| otherwise = Uncompleted set
 
 peFormatToGridSquare :: Char -> GridSquare
-peFormatToGridSquare '0' = constructGridSquare $ Right fullyUnknown
-peFormatToGridSquare x = constructGridSquare $ Left $ digitToInt x
-
-isCompleted :: GridSquare -> Bool
-isCompleted (GridSquare x) = isLeft x
+peFormatToGridSquare '0' = constructGridSquare fullyUnknown
+peFormatToGridSquare x = Completed $ digitToInt x
 
 removeOption :: GridSquare -> Int -> GridSquare
-removeOption (GridSquare x) n = constructGridSquare $ (second . Set.delete) n x
+removeOption (Uncompleted set) n = constructGridSquare $ Set.delete n set
+removeOption x _ = x
 
 options :: GridSquare -> Int
-options (GridSquare (Left _)) = 0
-options (GridSquare (Right set)) = Set.size set - 1
+options (Completed _) = 0
+options (Uncompleted set) = Set.size set - 1
 
 instance Show GridSquare where
-	show (GridSquare g) = show $ either id (const 0) g
+	show (Completed g) = show g
+	show _ = "0"
 
 newtype Sudoku = Sudoku (Array (Int, Int) GridSquare)
 
@@ -57,7 +62,36 @@ grid2 = readGrid "20008030006007008403050020900010540800000000040270600030100704
 
 removeLinesAndGrids :: Sudoku -> Sudoku
 removeLinesAndGrids (Sudoku grid) = Sudoku $ accum removeOption grid $ concat rowsToUpdate
-	where rowsToUpdate = [(fillRow a)++(fillColumn a)++(fillGrid a) | ((x,y), GridSquare (Left e)) <- assocs grid, let a=((x,y),e)]
+	where rowsToUpdate = [(fillRow a)++(fillColumn a)++(fillGrid a) | ((x,y), Completed e) <- assocs grid, let a=((x,y),e)]
+
+--completeLoneNumberLinesAndGrids :: Sudoku -> Sudoku
+--completeLoneNumberLinesAndGrids
+--Map.keys $ Map.filter (== Just 1) $ Map.unionsWith (liftA2 (+)) $ map toMap $ getGridSquares (getRow (0,0))
+
+toMap (Completed x) = Map.adjust (const Nothing) x $ Map.fromAscList $ zip [1..9] $ repeat $ Just 0
+toMap (Uncompleted set) = Map.fromSet (const $ Just 1) set
+
+--type GridGetter = Setter' Sudoku GridSquare
+
+--fullRow :: (Int, Int) -> Lens' Sudoku [GridSquare]
+--fullRow (x,y) = map () [0..8]
+
+getGridSquares :: [(Int, Int)] -> Sudoku -> [GridSquare]
+getGridSquares ix (Sudoku board) = map (board !) ix
+
+getRow (_,y) = map (,y) [0..8]
+getColumn (x,_) = map (x,) [0..8]
+getGrid (x,y) = [(xs,ys) | xs <- [lowX.. lowX+2], ys <- [lowY.. lowY+2]]
+	where
+		lowX = x-(x `mod` 3)
+		lowY = y-(y `mod` 3)
+
+--sudokuLens :: (Sudoku -> GridSquare -> Sudoku) -> Lens' Sudoku GridSquare
+sudokuLens :: (Functor f) => (Int, Int) -> (GridSquare -> f GridSquare) -> (Sudoku -> f Sudoku)
+sudokuLens i = lens getter const--setter
+	where
+		getter (Sudoku board) = board ! i
+		--setter (Sudoku board) gridSquare = 
 
 fillRow ((x,y),a) = map ((,a) . (,y)) [0..8]
 fillColumn ((x,y),a) = map ((,a) . (x,)) [0..8]
@@ -66,6 +100,6 @@ fillGrid ((x,y),a) = [((xs,ys),a) | xs <- [lowX.. lowX+2], ys <- [lowY.. lowY+2]
 		lowY = (y `div` 3)*3
 
 solvePuzzle :: Sudoku -> Sudoku
-solvePuzzle = head . dropWhile ((/=0) . remainingUnknowns) . iterate removeLinesAndGrids
+solvePuzzle = head . dropWhile ((/=0) . remainingUnknowns) . iterate (foldl1 (.) [removeLinesAndGrids])
 
 main = readFile "Problem 96 sudoku.txt" >>= print . fmap solvePuzzle . readGrids . lines
