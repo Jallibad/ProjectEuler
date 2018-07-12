@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections, TemplateHaskell, ParallelListComp #-}
+{-# LANGUAGE TupleSections, TemplateHaskell, ParallelListComp, Rank2Types #-}
 
 import Control.Applicative
 import Control.Lens
@@ -33,8 +33,7 @@ removeOption (Uncompleted set) n = constructGridSquare $ Set.delete n set
 removeOption x _ = x
 
 options :: GridSquare -> Int
-options (Completed _) = 0
-options (Uncompleted set) = Set.size set - 1
+options square = Set.size $ square^.uncompleted
 
 instance Show GridSquare where
 	show (Completed g) = show g
@@ -60,50 +59,33 @@ readGrids s = Map.insert title (readGrid $ concat x) $ readGrids xs
 
 grid1 = readGrid "003020600900305001001806400008102900700000008006708200002609500800203009005010300"
 grid2 = readGrid "200080300060070084030500209000105408000000000402706000301007040720040060004010003"
+grid6 = readGrid "100920000524010000000000070050008102000000000402700090060000000000030945000071006"
 
 removeLinesAndGrids :: Sudoku -> Sudoku
 removeLinesAndGrids (Sudoku grid) = Sudoku $ accum removeOption grid $ concat rowsToUpdate
 	where rowsToUpdate = [(fillRow a)++(fillColumn a)++(fillGrid a) | ((x,y), Completed e) <- assocs grid, let a=((x,y),e)]
 
---completeLoneNumberLinesAndGrids :: Sudoku -> Sudoku
---completeLoneNumberLinesAndGrids
---findLoner
-findLoners y = Map.keysSet . Map.filter (== Just 1) . Map.unionsWith (liftA2 (+)) . map toMap . view (rowLens y)
-setIf :: Set.Set Int -> GridSquare -> GridSquare
-setIf x s = fromMaybe s $ fmap Completed $ find (const True) $ Set.intersection x $ s^.uncompleted
-
+toMap :: GridSquare -> Map.Map Int (Maybe Int)
 toMap (Completed x) = Map.adjust (const Nothing) x $ Map.fromAscList $ zip [1..9] $ repeat $ Just 0
 toMap (Uncompleted set) = Map.fromSet (const $ Just 1) set
 
-fix y grid lens = over (lens y) (map $ setIf $ findLoners y grid) grid
-
---type GridGetter = Setter' Sudoku GridSquare
-
---fullRow :: (Int, Int) -> Lens' Sudoku [GridSquare]
---fullRow (x,y) = map () [0..8]
-
-getGridSquares :: [(Int, Int)] -> Sudoku -> [GridSquare]
-getGridSquares ix (Sudoku board) = map (board !) ix
-
-getRow (_,y) = map (,y) [0..8]
-getColumn (x,_) = map (x,) [0..8]
-getGrid (x,y) = [(xs,ys) | xs <- [lowX.. lowX+2], ys <- [lowY.. lowY+2]]
+fix :: Sudoku -> Lens' Sudoku [GridSquare] -> Sudoku
+fix grid lens = over lens func grid
 	where
-		lowX = x-(x `mod` 3)
-		lowY = y-(y `mod` 3)
+		func squares = map (setIf $ findLoners squares) squares
+		setIf x s = fromMaybe s $ fmap Completed $ find (const True) $ Set.intersection x $ s^.uncompleted
+		findLoners = Map.keysSet . Map.filter (== Just 1) . Map.unionsWith (liftA2 (+)) . map toMap
 
---sudokuLens :: (Sudoku -> GridSquare -> Sudoku) -> Lens' Sudoku GridSquare
-sudokuLens :: (Functor f) => (Int, Int) -> (GridSquare -> f GridSquare) -> (Sudoku -> f Sudoku)
-sudokuLens i = lens getter const--setter
-	where
-		getter (Sudoku board) = board ! i
-		--setter (Sudoku board) gridSquare = 
+completeLoneRows grid = foldl (\grid x -> fix grid $ rowLens x) grid [0..8]
+completeLoneColumns grid = foldl (\grid y -> fix grid $ columnLens y) grid [0..8]
+completeLoneGrids grid = foldl (\grid p -> fix grid $ gridLens p) grid [(x,y) | x <- [0,3..8], y <- [0,3..8]]
 
 singleLens i = lens getter setter
 	where
 		getter (Sudoku grid) = grid ! i
 		setter (Sudoku grid) v = Sudoku $ grid // [(i, v)]
 
+rowLens :: Int -> Lens' Sudoku [GridSquare]
 rowLens y = lens getter setter
 	where
 		getter (Sudoku grid) = elems $ ixmap ((0,y),(8,y)) id $ grid
@@ -114,13 +96,31 @@ columnLens x = lens getter setter
 		getter (Sudoku grid) = elems $ ixmap ((x,0),(x,8)) id $ grid
 		setter (Sudoku grid) vs = Sudoku $ grid // [((x,y),v) | y <- [0..8] | v <- vs]
 
+gridLens (x,y) = lens getter setter
+		where
+			lowX = x-(x `mod` 3)
+			lowY = y-(y `mod` 3)
+			getter (Sudoku grid) = elems $ ixmap ((lowX,lowY),(lowX+2,lowY+2)) id $ grid
+			setter (Sudoku grid) vs = Sudoku $ grid // [((x,y),v) | x <- [lowX..lowX+2], y <- [lowY..lowY+2] | v <- vs]
+
 fillRow ((x,y),a) = map ((,a) . (,y)) [0..8]
 fillColumn ((x,y),a) = map ((,a) . (x,)) [0..8]
 fillGrid ((x,y),a) = [((xs,ys),a) | xs <- [lowX.. lowX+2], ys <- [lowY.. lowY+2], xs/=x || ys/=y]
-	where	lowX = (x `div` 3)*3
+	where
+		lowX = (x `div` 3)*3
 		lowY = (y `div` 3)*3
 
 solvePuzzle :: Sudoku -> Sudoku
-solvePuzzle = head . dropWhile ((/=0) . remainingUnknowns) . iterate (foldl1 (.) [removeLinesAndGrids])
+solvePuzzle grid = head $ dropWhile ((/=0) . remainingUnknowns) $ scanl (flip ($)) grid inferenceRules
+	where
+		inferenceRules = cycle [removeLinesAndGrids, completeLoneRows, completeLoneColumns, completeLoneGrids]
+
+workOnPuzzle grid = scanl (flip ($)) grid inferenceRules
+	where
+		inferenceRules = cycle [removeLinesAndGrids, completeLoneRows, completeLoneColumns, completeLoneGrids]
 
 main = readFile "Problem 96 sudoku.txt" >>= print . fmap solvePuzzle . readGrids . lines
+
+--setPicker :: [Set.Set Int] -> [[Set.Set Int]]
+--setPicker  = 
+--setPicker num sets = 
