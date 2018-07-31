@@ -7,6 +7,7 @@ import Data.Ord (comparing)
 import Data.Array.ST
 import Control.Monad.ST
 import Control.Monad
+import Control.Arrow
 
 type TotientSieve s = STUArray s Int Int
 
@@ -17,10 +18,15 @@ totients n = M.elems $ foldl (\m i -> if m M.! i == i then foldr (M.adjust (\x -
 	(M.fromList $ zip [0..n] [0..n]) [2..n]
 -}
 
-totients n = runST $ do
+totients n = do
 	arr <- newListArray (0,n) [0..]
 	mapM_ (innerFold arr n) [2..n]
 	getAssocs arr
+
+totients' n = do
+	arr <- newListArray (0,n) [0..]
+	mapM_ (innerFold arr n) [2..n]
+	return arr
 
 innerFold arr n i = do
 	a <- readArray arr i
@@ -30,4 +36,10 @@ innerFold arr n i = do
 adjust :: TotientSieve s -> (Int -> Int) -> Int -> ST s ()
 adjust arr f i = readArray arr i >>= writeArray arr i . f
 
-main = print $ fst $ minimumBy (comparing $ uncurry ((/) `on` fromIntegral)) $ filter (uncurry $ on (==) (sort . show)) $ drop 2 $ totients $ 10^7
+minFun :: (Fractional a, Ord a) => (Int, a) -> (Int, Int) -> (Int, a)
+minFun a b
+	| ((uncurry $ on (/=) (sort . show)) b) || ((snd a) < b') = a
+	| otherwise = (fst b, b')
+	where b' = (uncurry ((/) `on` fromIntegral)) b
+
+main = print $ fst $ minimumBy (comparing $ uncurry ((/) `on` fromIntegral)) $ filter (uncurry $ on (==) (sort . show)) $ drop 2 $ runST $ totients $ 10^7
