@@ -2,3 +2,7 @@
 *.hi
 *.exe
 *.out
+*.hp
+*.prof
+*.ps
+*.aux
