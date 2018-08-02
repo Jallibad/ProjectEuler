@@ -1,7 +1,8 @@
-import Data.List (maximumBy, tails)
+import Data.List
+import Data.Maybe (mapMaybe)
 import Data.Ord (comparing)
-import MathFunctions (primes, isPrime)
+import MathFunctions (isPrime, primes)
 
-upperBound = 10^6
+sumConsecPrimes n = find (isPrime . snd) . reverse . zip [1..] . takeWhile (<n) . scanl1 (+)
 
-main = print $ snd $ maximumBy (comparing fst) $ concatMap (take 1 . filter (isPrime . snd) . reverse . zip [1..] . takeWhile (<upperBound) . scanl1 (+)) $ take 10 $ tails primes
+main = print $ snd $ maximumBy (comparing fst) $ mapMaybe (sumConsecPrimes $ 10^6) $ take 10 $ tails primes
