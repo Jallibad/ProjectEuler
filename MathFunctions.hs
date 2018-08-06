@@ -7,6 +7,7 @@ import ListFunctions
 import Data.Bits
 import Data.Char (digitToInt)
 import Data.List
+import Data.Ratio
 
 isqrt :: Integral a => a -> a
 isqrt 0 = 0
@@ -67,7 +68,7 @@ digitFactorial :: (Integral a, Show a) => a -> Int
 digitFactorial number = sum $ map ((factorials !!) . digitToInt) $ show number
 
 combinatoric :: Integral (a) => a -> a -> a
-combinatoric n r = (factorial n) `div` ((factorial (n-r))*(factorial r))
+combinatoric n k = truncate $ product $ [(n+1-i) % i | i <- [1.. min k $ n-k]]
 
 fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
 

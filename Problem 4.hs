@@ -1,3 +1,5 @@
+import Data.List (find)
+import Data.Maybe (mapMaybe)
 import ListFunctions (isPalindrome)
 
-main = print $ maximum $ concatMap (\a -> take 1 $ filter (isPalindrome . show) $ map (a*) [999,998..a]) [999,998..10]
+main = print $ maximum $ mapMaybe (\a -> find (isPalindrome . show) $ map (a*) [999,998..a]) [999,998..10]
