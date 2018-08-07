@@ -7,3 +7,4 @@
 *.ps
 *.aux
 *.dump-simpl
+*.dump-simpl-stats
