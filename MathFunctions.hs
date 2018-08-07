@@ -1,9 +1,11 @@
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ViewPatterns, TupleSections #-}
 
 module MathFunctions where
 
 import ListFunctions
+import Sieve
 
+import Data.Array
 import Data.Bits
 import Data.Char (digitToInt)
 import Data.List
@@ -65,7 +67,7 @@ factorials :: Integral a => [a]
 factorials = 1 : scanl1 (*) [1..]
 
 digitFactorial :: (Integral a, Show a) => a -> Int
-digitFactorial number = sum $ map ((factorials !!) . digitToInt) $ show number
+digitFactorial = sum . map ((factorials !!) . digitToInt) . show
 
 combinatoric :: Integral (a) => a -> a -> a
 combinatoric n k = truncate $ product $ [(n+1-i) % i | i <- [1.. min k $ n-k]]

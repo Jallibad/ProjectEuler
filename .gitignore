@@ -6,3 +6,4 @@
 *.prof
 *.ps
 *.aux
+*.dump-simpl
