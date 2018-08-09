@@ -1,7 +1,7 @@
 module ListFunctions where
 
 import Data.List
-import Data.Foldable
+import Data.Foldable hiding (all, find)
 import Data.Array (indices, elems, listArray, (//), (!))
 import Data.Maybe (fromJust)
 import Data.Function
