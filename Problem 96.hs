@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections, TemplateHaskell, ParallelListComp, Rank2Types #-}
+{-# LANGUAGE TupleSections, TemplateHaskell, ParallelListComp, Rank2Types, ViewPatterns #-}
 
 import Control.Applicative
 import Control.Lens
@@ -8,10 +8,13 @@ import Data.Bifunctor
 import Data.Char
 import Data.Either
 import Data.Foldable (foldr', find)
+import Data.List (sortBy, delete)
 import Data.List.Split
-import Data.Maybe (fromMaybe)
+import Data.Maybe
 import qualified Data.Map.Strict as Map
+import Data.Ord (comparing)
 import qualified Data.Set as Set
+import Debug.Trace
 
 data GridSquare = Completed {_completed :: Int} | Uncompleted {_uncompleted :: Set.Set Int}
 
@@ -54,8 +57,7 @@ readGrid = Sudoku . fmap peFormatToGridSquare . listArray ((0, 0), (8, 8))
 
 readGrids :: [String] -> Map.Map String Sudoku
 readGrids [] = Map.empty
-readGrids s = Map.insert title (readGrid $ concat x) $ readGrids xs
-	where (title:x,xs) = splitAt 10 s
+readGrids (splitAt 10 -> (title:x,xs)) = Map.insert title (readGrid $ concat x) $ readGrids xs
 
 grid1 = readGrid "003020600900305001001806400008102900700000008006708200002609500800203009005010300"
 grid2 = readGrid "200080300060070084030500209000105408000000000402706000301007040720040060004010003"
@@ -121,6 +123,12 @@ workOnPuzzle grid = scanl (flip ($)) grid inferenceRules
 
 main = readFile "Problem 96 sudoku.txt" >>= print . fmap solvePuzzle . readGrids . lines
 
---setPicker :: [Set.Set Int] -> [[Set.Set Int]]
---setPicker  = 
---setPicker num sets = 
+setPicker :: Int -> [Set.Set Int] -> Set.Set Int -> [Set.Set Int]
+setPicker num [] ans
+	| num == Set.size ans = [ans]
+	| otherwise = []
+setPicker num sets ans = concatMap f sets
+
+f set = setPicker (num+(Set.size set)-1) (delete set sets) (Set.union set ans)
+	where
+		nSet = delete set sets
