@@ -14,7 +14,7 @@ instance Show Fraction where
 	show (Fraction n d) = (show n)++"/"++(show d)
 
 simplify :: Fraction -> Fraction
-simplify (Fraction n d) = Fraction (n `div` s) (d `div` s)
+simplify (Fraction n d) = Fraction (n `div` s * signum d) (abs $ d `div` s)
 	where s = gcd n d
 
 instance Eq Fraction where
@@ -24,8 +24,7 @@ instance Eq Fraction where
 			(Fraction c d) = simplify f2
 
 instance Ord Fraction where
-	compare (Fraction a b) (Fraction c d) = compare (a |/ b) (c |/ d)
-		where (|/) = (/) `on` fromIntegral
+	compare = comparing value
 
 instance Num Fraction where
 	(Fraction a b) + (Fraction c d) = simplify $ Fraction (a*d+b*c) (b*d)

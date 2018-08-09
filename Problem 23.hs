@@ -1,7 +1,10 @@
 import qualified Data.Set as Set
 import MathFunctions (factors)
+import Sieve
+import Data.Array.Unboxed
 
-abundants = filter (\x -> (sum $ init $ factors x) > x) [1..28123-12]
+abundants' = filter (\x -> (sum $ init $ factors x) > x) [1..28123-12]
+abundants = map fst $ filter (uncurry (<)) $ assocs (divisorSieve (+) 0 28123 :: UArray Int Int)
 
 abundantSet = Set.fromDistinctAscList abundants
 
