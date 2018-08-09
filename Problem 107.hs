@@ -1,20 +1,31 @@
-import Control.Arrow ((&&&))
+{-# LANGUAGE TupleSections, ViewPatterns #-}
+
+import Control.Arrow ((&&&), first)
+import Data.Function (on)
 import Data.List (delete, minimumBy)
 import Data.List.Split (splitOn)
 import qualified Data.Map as Map
+import Data.Maybe (catMaybes)
 import Data.Ord (comparing)
 
 data Vertex = Vertex {name :: Int, edges :: Map.Map Int Int} deriving (Show)
 
 instance Eq Vertex where
-	(Vertex a _) == (Vertex b _) = a == b
+	(==) = (==) `on` name
 
 mst ((Vertex n _):xs) = mst' [n] xs
-	where	mst' minimal [] = 0
-		mst' minimal full = val + (mst' (toAdd:minimal) (delete (Vertex toAdd Map.empty) full))
-			where (toAdd, val) = minimumBy (comparing snd) [(name y, (edges y) Map.! x) | x <- minimal, y <- full, x `Map.member` (edges y)]
+mst' minimal [] = 0
+mst' minimal full = uncurry (+) $ first nextVal $ minimumBy (comparing snd) stuff
+	where
+		stuff = catMaybes [fmap (n,) $ Map.lookup x e | x <- minimal, Vertex n e <- full]
+		nextVal v = mst' (v:minimal) $ delete (Vertex v Map.empty) full
 
-readVertices = map (uncurry Vertex) . zip [0..] . map (fmap read . Map.fromDistinctAscList . filter ((/="-") . snd) . zip [0..] . splitOn ",") . lines
-sumEdges vs = (sum $ map (sum . Map.elems . edges) vs) `div` 2
+readVertices :: String -> [Vertex]
+readVertices = zipWith Vertex [0..] . map readLine . lines
+
+readLine :: String -> Map.Map Int Int
+readLine = fmap read . Map.fromDistinctAscList . filter ((/="-") . snd) . zip [0..] . splitOn ","
+
+sumEdges = (`div` 2) . sum . map (sum . Map.elems . edges)
 
 main = readFile "Problem 107 Network.txt" >>= print . uncurry (-) . (sumEdges &&& mst) . readVertices
