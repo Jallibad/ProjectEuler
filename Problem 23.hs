@@ -1,9 +1,10 @@
-import Data.List
-import MathFunctions
+import qualified Data.Set as Set
+import MathFunctions (factors)
 
-abundants = filter (\x -> (sum $ init $ factors x) > x) [1..]
+abundants = filter (\x -> (sum $ init $ factors x) > x) [1..28123-12]
 
-isAbundantSum n = any ((`elem` lessAbundants) . (n-)) lessAbundants
-	where lessAbundants = takeWhile (<=n) abundants
+abundantSet = Set.fromDistinctAscList abundants
+
+isAbundantSum x = any (\i -> Set.member (x-i) abundantSet) $ takeWhile (<x) abundants
 
 main = print $ sum $ filter (not . isAbundantSum) [1..28123]

@@ -1,5 +1,5 @@
-import Data.List
-import ListFunctions
+import Data.List (find)
+import Data.Maybe (mapMaybe)
+import ListFunctions (isPalindrome)
 
-
-main = print $ maximum $ filter (isPalindrome . show) [a*b | a <- [100..999], b <- [100..999]]
+main = print $ maximum $ mapMaybe (\a -> find (isPalindrome . show) $ map (a*) [999,998..a]) [999,998..10]

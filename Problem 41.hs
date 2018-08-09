@@ -1,4 +1,4 @@
-import Data.List
-import MathFunctions
+import MathFunctions (isPrime)
+import Data.List (permutations)
 
-main = print $ maximum $ filter isPrime $ map (\x -> read x :: Int) $ permutations ['7','6'..'1']
+main = print $ maximum $ filter isPrime $ map read $ permutations ['1'..'7']

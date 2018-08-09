@@ -1,7 +1,6 @@
-import Data.List
-import MathFunctions
+import MathFunctions (distinctPrimeFactors)
 
 distinctPrimeFactorsGenerator :: Int -> Int
-distinctPrimeFactorsGenerator d = fst $ until (all (==d) . take d . snd) (\(x, (_:ps)) -> (x+1, ps)) (1, map (length . distinctPrimeFactors) [1..])
+distinctPrimeFactorsGenerator d = fst $ head $ filter (all (==d) . take d . snd) $ zip [1..] $ iterate tail $ map (length . distinctPrimeFactors) [1..]
 
 main = print $ distinctPrimeFactorsGenerator 4

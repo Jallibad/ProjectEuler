@@ -1,3 +1,10 @@
 *.o
 *.hi
 *.exe
+*.out
+*.hp
+*.prof
+*.ps
+*.aux
+*.dump-simpl
+*.dump-simpl-stats

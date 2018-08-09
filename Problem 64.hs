@@ -2,6 +2,8 @@ import Data.List (zipWith, maximumBy, (\\))
 import Data.Function (on)
 import Data.Ord (comparing)
 
+import MathFunctions
+
 --Used "http://mathworld.wolfram.com/PellEquation.html" for research on the Pell equation
 
 solveEquation d = length $ takeWhile (/=(head a * 2)) a
@@ -12,7 +14,6 @@ solveEquation d = length $ takeWhile (/=(head a * 2)) a
 		_p = 0 : (head a) : zipWith (-) (zipWith (*) (tail a) (tail _q)) (tail _p)
 		_q = 1 : (d - (head a)^2) : zipWith (div) (map (\x -> d-x^2) $ drop 2 _p) (tail _q)
 
-nonSquares = [2..limit] \\ (takeWhile (<=limit) $ map (^2) [2..])
-	where limit = 10000
+nonSquares = filter (not . isSquare) [2..10^4]
 
 main = print $ length $ filter odd $ map solveEquation nonSquares

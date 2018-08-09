@@ -1,44 +1,81 @@
+from collections import deque
+from heapdict import heapdict
+
+
+class Graph(object):
+    def __init__(self):
+        self.nodes = set()
+        self.edges = heapdict()
+        self.distances = {}
+
+    def addNode(self, value):
+        self.nodes.add(value)
+
+    def addEdge(self, from_node, to_node, distance):
+        self.edges.setdefault(from_node,[]).append(to_node)
+        self.edges.setdefault(to_node,[]).append(from_node)
+        self.distances[(from_node, to_node)] = distance
+
+
+def dijkstra(graph, initial):
+    visited = {initial: 0}
+    path = {}
+    nodes = set(graph.nodes)
+
+    while nodes:
+        u = None
+        for node in nodes:
+            if node in visited and (u is None or visited[node] < visited[u]):
+                u = node
+        if u is None:
+            break
+        nodes.remove(u)
+        current_weight = visited[u]
+
+        for edge in graph.edges[u]:
+            try:
+                weight = current_weight + graph.distances[(u, edge)]
+            except:
+                continue
+            if edge not in visited or weight < visited[edge]:
+                visited[edge] = weight
+                path[edge] = u
+
+    return visited, path
+
+
+def shortestPath(graph, origin, destination):
+    if origin == destination:
+        return 0, list(origin)
+    visited, paths = dijkstra(graph, origin)
+    full_path = deque()
+    if destination not in paths:
+        return 0, origin
+    new_destination = paths[destination]
+
+    while new_destination != origin:
+        full_path.appendleft(new_destination)
+        new_destination = paths[new_destination]
+
+    full_path.appendleft(origin)
+    full_path.append(destination)
+
+    return visited[destination], list(full_path)
+
 matrix = []
 with open("Problem 81 Matrix.txt") as file:
     for line in file:
-        temp = []
-        for number in line.split(","):
-            temp.append(int(number))
-        matrix.append(temp)
-new = [[0 for _ in row] for row in matrix]
-new[0][0] = matrix[0][0]
-def printMatrix(toPrint):
-    for line in toPrint:
-        temp = ""
-        for number in line:
-            if(number <1000):
-                temp += "0"
-            if (number < 100):
-                temp += "0"
-            if (number < 10):
-                temp += "0"
-            temp += str(number)+" "
-        print(temp[:-1])
+        line = line.split(",")
+        line = [int(x) for x in line]
+        matrix.append(line)
 
-for i in range(min(len(matrix), len(matrix[0]))):
-    for x in range(i, len(matrix[0])-1):
-        y = i
-        if new[y][x+1] != 0:
-            new[y][x+1] = min(matrix[y][x+1]+new[y][x],new[y][x+1])
-        else:
-            new[y][x+1] = matrix[y][x+1]+new[y][x]
-        if new[y+1][x+1] != 0:
-            new[y+1][x+1] = min(new[y][x+1]+matrix[y+1][x+1],new[y+1][x+1])
-        else:
-            new[y+1][x+1] = new[y][x+1]+matrix[y+1][x+1]
-    for y in range(i, len(matrix)-1):
-        x = i
-        if new[y+1][x] != 0:
-            new[y+1][x] = min(matrix[y+1][x]+new[y][x],new[y+1][x])
-        else:
-            new[y+1][x] = matrix[y+1][x]+new[y][x]
-        if new[y+1][x+1] != 0:
-            new[y+1][x+1] = min(new[y+1][x]+matrix[y+1][x+1],new[y+1][x+1])
-        else:
-            new[y+1][x+1] = new[y+1][x]+matrix[y+1][x+1]
-print(new[-1][-1])
+g = Graph()
+g.addNode((-1,-1))
+for y in range(len(matrix)):
+    for x in range(len(matrix[y])):
+        g.addNode((y,x))
+        g.addEdge((y-1,x),(y,x),matrix[y][x])
+        g.addEdge((y,x-1),(y,x),matrix[y][x])
+
+g.addEdge((-1,-1),(0,0),matrix[0][0])
+print(shortestPath(g,(-1,-1),(len(matrix)-1,len(matrix)-1))[0])

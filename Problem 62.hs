@@ -1,9 +1,10 @@
-import Data.List
-import Data.Function
-import Data.Ord
+import Control.Arrow ((&&&))
+import Data.Function (on)
+import Data.List (groupBy, sort, sortOn)
+import Data.Ord (comparing)
 
-cubes = groupBy ((==) `on` (length . snd)) $ map (\x -> (x, sort $ show $ x^3)) [1..]
+cubes = groupBy ((==) `on` (length . snd)) $ map (id &&& (sort . show . (^3))) [1..]
 
-f n = filter ((==) 5 . snd) $ map (\x -> (fst $ head x, length x)) $ groupBy ((==) `on` snd) $ sortBy (comparing snd) n
+f n = map (fst . head) $ filter ((==5) . length) $ groupBy ((==) `on` snd) $ sortOn snd n
 
-main = print $ (fst $ head $ concatMap f cubes)^3
+main = print $ (head $ concatMap f cubes)^3

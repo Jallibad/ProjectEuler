@@ -1,20 +1,16 @@
 memoize = {1: 1}
 
-def collatzR(n):
-    if n in memoize:
-        return memoize[n]
-    else:
-        answer = 0
+def collatz(n):
+    if n not in memoize:
         if n%2 == 0:
-            answer = collatzR(int(n/2))+1
+            memoize[n] = collatz(int(n/2))+1
         else:
-            answer = collatzR(3*n+1)+1
-        memoize[n] = answer
-        return answer
+            memoize[n] = collatz(3*n+1)+1
+    return memoize[n]
     
 maximum = (0, 0) #(number, amount)
-for i in range(1,10**6-1):
-    temp = collatzR(i)
+for i in range(1,10**6):
+    temp = collatz(i)
     if temp > maximum[1]:
         maximum = (i, temp)
 print(maximum[0])

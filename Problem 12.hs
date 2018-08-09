@@ -1,4 +1,4 @@
-import MathFunctions (factors)
 import FigurateNumbers (triangles)
+import MathFunctions (factors)
 
-main = print $ fst $ head $ dropWhile ((<500) . snd) $ zip triangles $ map (length . factors) triangles
+main = print $ head $ dropWhile ((<500) . length . factors) triangles

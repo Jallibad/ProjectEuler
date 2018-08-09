@@ -1,9 +1,3 @@
-factorials = 1 : (scanl1 (*) [1..])
+import MathFunctions (combinatoric)
 
-factorial :: Int -> Integer
-factorial n = factorials !! n
-
-combinatoric :: Integral (a) => Int -> Int -> Integer
-combinatoric n r = (factorial n) `div` ((factorial (n-r))*(factorial r))
-
-main = print $ length $ filter (>10^6) [combinatoric n r | n <- [1..100], r <- [1..n-1]]
+main = print $ length [x | n <- [23..100], r <- [2..n-1], let x=combinatoric n r, x>10^6]
