@@ -3,11 +3,9 @@ import MathFunctions (factors)
 import Sieve
 import Data.Array.Unboxed
 
-abundants' = filter (\x -> (sum $ init $ factors x) > x) [1..28123-12]
-abundants = map fst $ filter (uncurry (<)) $ assocs (divisorSieve (+) 0 28123 :: UArray Int Int)
+abundants :: Set.Set Int
+abundants = Set.fromDistinctAscList $ map fst $ filter (uncurry (<)) $ assocs (divisorSieve (+) 0 28123 :: UArray Int Int)
 
-abundantSet = Set.fromDistinctAscList abundants
-
-isAbundantSum x = any (\i -> Set.member (x-i) abundantSet) $ takeWhile (<x) abundants
+isAbundantSum x = any (\i -> Set.member (x-i) abundants) $ fst $ Set.split x abundants
 
 main = print $ sum $ filter (not . isAbundantSum) [1..28123]

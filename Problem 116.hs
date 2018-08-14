@@ -1,32 +1,16 @@
-import Control.Arrow ((&&&))
-import qualified Data.Map.Strict as Map
-import Data.Maybe (fromMaybe)
+import Data.Function.Memoize (memoFix3)
 
-redTiles n = fst $ redTiles' n True Map.empty
-	where	redTiles' n needTile m
-			| n <= 0 = (if (n == 0) && (not needTile) then 1 else 0, m)
-			| otherwise = fromMaybe (ans, Map.insert (n, needTile) ans m') memoizePart
-				where	memoizePart = fmap (id &&& const m) $ Map.lookup (n, needTile) m
-					(singleAns, singleM) = redTiles' (n-1) needTile m
-					(tileAns, m') = redTiles' (n-2) False singleM
-					ans = singleAns+tileAns
+tiles :: Int -> Int -> Int
+tiles = memoFix3 tiles' True
 
-greenTiles n = fst $ greenTiles' n True Map.empty
-	where	greenTiles' n needTile m
-			| n <= 0 = (if (n == 0) && (not needTile) then 1 else 0, m)
-			| otherwise = fromMaybe (ans, Map.insert (n, needTile) ans m') memoizePart
-				where	memoizePart = fmap (id &&& const m) $ Map.lookup (n, needTile) m
-					(singleAns, singleM) = greenTiles' (n-1) needTile m
-					(tileAns, m') = greenTiles' (n-3) False singleM
-					ans = singleAns+tileAns
+redTiles = tiles 2
+greenTiles = tiles 3
+blueTiles = tiles 4
 
-blueTiles n = fst $ blueTiles' n True Map.empty
-	where	blueTiles' n needTile m
-			| n <= 0 = (if (n == 0) && (not needTile) then 1 else 0, m)
-			| otherwise = fromMaybe (ans, Map.insert (n, needTile) ans m') memoizePart
-				where	memoizePart = fmap (id &&& const m) $ Map.lookup (n, needTile) m
-					(singleAns, singleM) = blueTiles' (n-1) needTile m
-					(tileAns, m') = blueTiles' (n-4) False singleM
-					ans = singleAns+tileAns
+tiles' :: (Num a, Ord a, Num b) => (Bool -> a -> a -> b) -> Bool -> a -> a -> b
+tiles' _ False _ 0 = 1
+tiles' f needTile len n
+	| n <= 0 = 0
+	| otherwise = (f needTile len $ n-1) + (f False len $ n-len)
 
 main = print $ (redTiles 50) + (greenTiles 50) + (blueTiles 50)

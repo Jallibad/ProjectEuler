@@ -30,9 +30,8 @@ isPrime ((`elem` [-1,0,1]) -> True) = False
 isPrime (abs -> n) = all ((/=) 0 . mod n) [2..isqrt n]
 
 isCircularPrime :: (Integral a, Show a) => a -> Bool
-isCircularPrime number = (length string == 1 || invalids \\ string == invalids) && (all (isPrime . read) $ circulateList string)
-	where	invalids = "024568"
-		string = show number
+isCircularPrime (show -> string) = (length string == 1 || invalids \\ string == invalids) && (all (isPrime . read) $ circulateList string)
+	where invalids = "024568"
 
 isTruncatablePrime :: (Integral a, Show a) => a -> Bool
 isTruncatablePrime n = (n >= 10) && (all (isPrime . read) $ (tail $ inits s)++(init $ tails s))

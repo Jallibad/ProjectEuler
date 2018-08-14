@@ -1,14 +1,9 @@
-import Control.Arrow ((&&&))
-import Data.List (mapAccumL)
-import qualified Data.Map.Strict as Map
-import Data.Maybe (fromMaybe)
+import Data.Function.Memoize (memoFix)
 
-tiles n = snd $ tiles' (Map.singleton 0 1) n
-	where	tiles' m n
-			| n < 0 = (m, 0)
-			| otherwise = fromMaybe (Map.insert n ans m', ans) memoizePart
-				where	memoizePart = fmap (const m &&& id) $ Map.lookup n m
-					(m', a) = mapAccumL tiles' m [n-1, n-2, n-3, n-4]
-					ans = sum a
+tiles :: (Num a, Ord a) => (a -> a) -> a -> a
+tiles _ 0 = 1
+tiles f n
+	| n < 0 = 0
+	| otherwise = sum $ map f [n-1, n-2, n-3, n-4]
 
-main = print $ tiles 50
+main = print $ memoFix tiles (50 :: Integer)
