@@ -1,13 +1,10 @@
-import Control.Arrow ((&&&))
-import Data.List (mapAccumL)
-import qualified Data.Map.Strict as Map
-import Data.Maybe (fromMaybe)
+import Data.Function.Memoize (memoFix2)
 
-tiles x n m
-	| n < x = (m, 1)
-	| otherwise = fromMaybe (Map.insert n ans m'', ans) memoizePart
-		where	memoizePart = fmap (const m &&& id) $ Map.lookup n m
-			(m'', a) = mapAccumL (\m' i -> tiles x (if i < n then n-i-1 else n-i) m') m $ 0:[x..n]
-			ans = sum a
+fill_count :: Integer -> Integer
+fill_count = memoFix2 tiles 50
 
-main = print $ fst $ head $ dropWhile ((<10^6) . snd) $ zip [50..] $ snd $ mapAccumL (flip $ tiles 50) Map.empty [50..]
+tiles f m n
+	| n < m = 1
+	| otherwise = sum $ map (\i -> f m (if i < n then n-i-1 else n-i)) (0:[m..n])
+
+main = print $ until ((>=10^6) . fill_count) (+1) 50
