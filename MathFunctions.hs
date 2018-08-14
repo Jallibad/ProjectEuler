@@ -8,6 +8,7 @@ import Sieve
 import Data.Array
 import Data.Bits
 import Data.Char (digitToInt)
+import Data.Function.Memoize
 import Data.List
 import Data.Ratio
 
@@ -78,3 +79,12 @@ intToBinary :: (Integral a, Bits a) => a -> [Bool]
 intToBinary n = map (testBit n) [0..truncate $ logBase 2 $ fromIntegral n]
 
 primitivePythagoreanTriples = [(a,b,c) | m <- [1..], n <- [(ceiling $ (sqrt 2)*(fromIntegral $ abs m))-m..m-1], even m || even n, gcd m n == 1, let a=m^2-n^2, let b=2*m*n, let c=m^2+n^2]
+
+stern_brocot_sequence :: Integral a => (a -> a) -> a -> a
+stern_brocot_sequence _ 0 = 0
+stern_brocot_sequence _ 1 = 1
+stern_brocot_sequence f n = f halfN + if odd n then f (halfN+1) else 0
+	where halfN = n `div` 2
+
+stern_brocot_sequenceM :: (Integral a, Memoizable a) => a -> a
+stern_brocot_sequenceM = memoFix stern_brocot_sequence
