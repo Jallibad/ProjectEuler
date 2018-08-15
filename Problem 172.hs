@@ -18,13 +18,12 @@ type MemoizingMap = Map.Map (Integer, DigitCounter) Integer
 
 countDigits :: Integer -> DigitCounter -> MemoizingMap -> (Integer, MemoizingMap)
 countDigits 0 _ memoize = (1, memoize)
-countDigits n m memoize = fromMaybe (second (Map.insert (n, m) $ fst ans) ans) memoizePart
+countDigits n m memoize = maybe (ans, Map.insert (n, m) ans m') (,memoize) $ Map.lookup (n, m) memoize
 	where
-		memoizePart = fmap (,memoize) $ Map.lookup (n, m) memoize
 		updateFunc (p, memoize') i
 			| m ! i > 0 = first (+p) $ countDigits (n-1) (counterUpdate m i) memoize'
 			| otherwise = (p, memoize')
-		ans = foldl' updateFunc (0, memoize) [0..9]
+		(ans, m') = foldl' updateFunc (0, memoize) [0..9]
 
 counterUpdate :: DigitCounter -> Int -> DigitCounter
 counterUpdate arr i = arr // [(i, (arr ! i)-1)]
