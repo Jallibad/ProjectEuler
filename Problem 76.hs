@@ -1,13 +1,10 @@
-import Control.Arrow ((&&&))
-import Data.List (mapAccumL)
-import qualified Data.Map.Strict as Map
-import Data.Maybe (fromMaybe)
+import Data.Function.Memoize (memoFix2)
 
-countSums n = snd $ countSums' n (n-1) Map.empty
-	where	countSums' 0 _ m = (m, 1)
-		countSums' n max m = fromMaybe (Map.insert (n, max) ans m'', ans) memoizePart
-			where	memoizePart = fmap (const m &&& id) $ Map.lookup (n, max) m
-				(m'', y) = mapAccumL (\m' x -> countSums' (n-x) (min x (n-x)) m') m [1.. min n max]
-				ans = sum y
+countSums :: Integer -> Integer
+countSums n = memoFix2 countSums' n $ n-1
+
+countSums' :: (Integer -> Integer -> Integer) -> Integer -> Integer -> Integer
+countSums' _ 0 _ = 1
+countSums' f n m = sum $ map (\x -> f (n-x) $ min x $ n-x) [1.. min n m]
 
 main = print $ countSums 100
