@@ -13,6 +13,6 @@ subStringDiv prime originalList = [part++[last list] | part <- originalList, lis
 numberStart :: [String]
 numberStart = [[a,b] | a <- singles, b <- singles, a/=b]
 
-subStrings = zipWith ($) (repeat subStringDiv) [2,3,5,7,11,13,17]
+subStrings = map (subStringDiv $) [2,3,5,7,11,13,17]
 
 main = print $ sum $ map (\s -> read $ (singles \\ s) ++ s) $ foldr ($) numberStart $ reverse subStrings
