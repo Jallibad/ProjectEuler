@@ -1,9 +1,14 @@
 import Data.Char
+import Data.Function.Memoize
 
-factorial :: Integral (a) => a -> a
-factorial number = product [1..number]
+squareDigits :: Int -> Int
+squareDigits = sum . map ((^2) . digitToInt) . show
 
-digitFactorial :: Integer -> Integer
-digitFactorial number = toInteger $ sum $ map (\x -> (digitToInt x)^2) $ show number
+squareDigitChain :: Int -> Bool
+squareDigitChain = memoFix squareDigitChain'
 
-main = print $ length $ filter (==89) $ map (head . dropWhile (\x -> (x/=1)&&(x/=89)) . iterate digitFactorial) [1..10^7]
+squareDigitChain' _ 1 = False
+squareDigitChain' _ 89 = True
+squareDigitChain' f n = f $ squareDigits n
+
+main = print $ length $ filter squareDigitChain [1..10^6]
