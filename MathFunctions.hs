@@ -4,12 +4,14 @@ module MathFunctions where
 
 import ListFunctions
 import Sieve
+import Polynomial
 
 import Data.Array
 import Data.Bits
 import Data.Char (digitToInt)
 import Data.Function.Memoize
 import Data.List
+import Data.List.Ordered (member)
 import Data.Ratio
 
 isqrt :: Integral a => a -> a
@@ -87,3 +89,34 @@ stern_brocot_sequence f n = f halfN + if odd n then f (halfN+1) else 0
 
 stern_brocot_sequenceM :: (Integral a, Memoizable a) => a -> a
 stern_brocot_sequenceM = memoFix stern_brocot_sequence
+
+tetrate :: Integral a => a -> a -> a -> a
+tetrate a 1 _ = a
+tetrate a k b = modularPow a (tetrate a (k-1) b) b
+
+mult :: Integral a => a -> a -> a -> a
+mult x y b = (x*y) `mod` b
+
+modularPow :: (Integral a, Integral b) => a -> b -> a -> a
+modularPow _ 0 _ = 1
+modularPow b e m = if odd e then mult result b m else result
+	where result = modularPow (mult b b m) (e `div` 2) m
+
+perfectPower :: Integral a => a -> Bool
+perfectPower n = any (\m -> member n $ map (m^) primes) [2.. isqrt n]
+
+multiplicativeOrder :: Integral a => a -> a -> a
+multiplicativeOrder a n = head $ dropWhile (\x -> (modularPow a x n)/=1) [1..n]
+
+totient :: Integral a => a -> a
+totient n = genericLength $ filter (\r -> gcd n r == 1) [1..n]
+
+aksPrimality :: Integral a => a -> Bool
+aksPrimality n = (not $ perfectPower n) && (step3 || step4)
+	where
+		logSquared = truncate $ (logBase 2 $ fromIntegral n)^2
+		r = head $ dropWhile (\r -> (gcd n r == 1) && (multiplicativeOrder n r)<=logSquared) [2..]
+		step3 = all (\a -> a `mod` n /= 0) [2.. min r $ n-1]
+		step4 = n <= r
+		maxA = truncate $ (sqrt $ fromIntegral $ totient r)*(logBase 2 $ fromIntegral n)
+		
