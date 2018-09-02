@@ -2,10 +2,8 @@
 
 module MathFunctions where
 
-import ListFunctions
-import Sieve
-import Polynomial
-
+import Control.Arrow
+import Control.Monad (filterM)
 import Data.Array
 import Data.Bits
 import Data.Char (digitToInt)
@@ -13,6 +11,11 @@ import Data.Function.Memoize
 import Data.List
 import Data.List.Ordered (member)
 import Data.Ratio
+import Data.Tuple (swap)
+import ListFunctions
+import Polynomial
+import Sieve
+import System.Random
 
 isqrt :: Integral a => a -> a
 isqrt 0 = 0
@@ -40,13 +43,14 @@ isTruncatablePrime n = (n >= 10) && (all (isPrime . read) $ (tail $ inits s)++(i
 	where s = show n
 
 primes :: Integral a => [a]
-primes = 2 : filter isPrime [3,5..]
+primes = 2 : 3 : filter isPrime (concatMap (\k -> [6*k-1,6*k+1]) [1..])
 
 isSquare n = (isqrt n)^2 == n
 
 factors :: Integral a => a -> [a]
 factors number = lowerFactors ++ if isSquare number then (tail upperFactors) else upperFactors
-	where	lowerFactors = filter ((==0) . rem number) [1..isqrt number]
+	where
+		lowerFactors = filter ((==0) . rem number) [1..isqrt number]
 		upperFactors = reverse (map (div number) lowerFactors)
 
 primeFactors :: Integral a => a -> [a]
@@ -58,8 +62,7 @@ factorization :: Integral a => a -> [a]
 factorization =	unfoldr foldFunction
 	where
 		foldFunction 1 = Nothing
-		foldFunction x = let firstPrime = head $ dropWhile (\n -> x `mod` n /= 0) primes in
-					Just (firstPrime, x `div` firstPrime)
+		foldFunction x = Just $ (id &&& div x) $ head $ dropWhile (\n -> x `mod` n /= 0) primes
 
 factorial :: Integral a => a -> a
 factorial 0 = 1
@@ -68,13 +71,15 @@ factorial n = product [1..n]
 factorials :: Integral a => [a]
 factorials = 1 : scanl1 (*) [1..]
 
-digitFactorial :: (Integral a, Show a) => a -> Int
-digitFactorial = sum . map ((factorials !!) . digitToInt) . show
+digitFactorial :: Integral a => a -> a
+digitFactorial = sum . map factorial . unfoldr (\n -> if n==0 then Nothing else Just $ swap $ n `quotRem` 10)
 
 combinatoric :: Integral (a) => a -> a -> a
 combinatoric n k = truncate $ product $ [(n+1-i) % i | i <- [1.. min k $ n-k]]
 
-fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
+fibs :: Integral a => [a]
+fibs = map fromIntegral fibs'
+	where fibs' = 0 : 1 : zipWith (+) fibs' (tail fibs')
 
 intToBinary :: (Integral a, Bits a) => a -> [Bool]
 intToBinary n = map (testBit n) [0..truncate $ logBase 2 $ fromIntegral n]
@@ -90,9 +95,12 @@ stern_brocot_sequence f n = f halfN + if odd n then f (halfN+1) else 0
 stern_brocot_sequenceM :: (Integral a, Memoizable a) => a -> a
 stern_brocot_sequenceM = memoFix stern_brocot_sequence
 
-tetrate :: Integral a => a -> a -> a -> a
-tetrate a 1 _ = a
-tetrate a k b = modularPow a (tetrate a (k-1) b) b
+tetrate :: Integral a => a -> a -> a
+tetrate a 1 = a
+tetrate a k = a^(tetrate a $ k-1)
+
+(↑↑) :: Integral a => a -> a -> a
+(↑↑) = tetrate
 
 mult :: Integral a => a -> a -> a -> a
 mult x y b = (x*y) `mod` b
@@ -112,11 +120,27 @@ totient :: Integral a => a -> a
 totient n = genericLength $ filter (\r -> gcd n r == 1) [1..n]
 
 aksPrimality :: Integral a => a -> Bool
-aksPrimality n = (not $ perfectPower n) && (step3 || step4)
+aksPrimality n = (not $ perfectPower n) && (n <= r || step3) && step5
 	where
 		logSquared = truncate $ (logBase 2 $ fromIntegral n)^2
-		r = head $ dropWhile (\r -> (gcd n r == 1) && (multiplicativeOrder n r)<=logSquared) [2..]
+		r = until (\r -> (gcd n r /= 1) || (multiplicativeOrder n r)>logSquared) (+1) 2
 		step3 = all (\a -> a `mod` n /= 0) [2.. min r $ n-1]
-		step4 = n <= r
 		maxA = truncate $ (sqrt $ fromIntegral $ totient r)*(logBase 2 $ fromIntegral n)
-		
+		step5 = all (\a -> modularPow a n n == a) [1.. maxA]
+
+fermatTest :: (Integral a, Random a) => Int -> a -> IO Bool
+fermatTest k n = fmap (all (\a -> modularPow a (n-1) n == 1) . take k . randomRs (2,n-2)) getStdGen
+
+jacobiSymbol a' n
+	| a == 1 = 1
+	| even a = (jacobiSymbol 2 n)*(jacobiSymbol (a `div` 2) n)
+	| gcd a n /= 1 = 0
+--	| otherwise = jacobiSymbol
+	where a = a' `mod` n
+
+{-
+millerRabinTest :: (Integral a, Random a) => a -> IO Bool
+millerRabinTest n = do
+	a <- randomRIO (2,n-2)
+	let r = truncate $ logBase 2 $ fromIntegral n
+-}
