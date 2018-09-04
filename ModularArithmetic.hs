@@ -1,32 +1,39 @@
-{-# LANGUAGE KindSignatures, ScopedTypeVariables #-}
+{-# LANGUAGE KindSignatures, ScopedTypeVariables, DataKinds #-}
 
 module ModularArithmetic where
 
 import Control.Arrow ((***))
+import Data.Function (on)
 import Data.Proxy
 import Data.Ratio ((%))
-import GHC.TypeLits
+import GHC.TypeLits (Nat, natVal, KnownNat)
 
 newtype Mod a (m :: Nat) = Mod a deriving (Eq, Ord)
 
+unMod :: Mod a m -> a
+unMod (Mod a) = a
+
+modMap :: (a -> a) -> Mod a m -> Mod a m
+modMap f = Mod . f . unMod
+
 instance Show a => Show (Mod a m) where
-    show (Mod a) = show a
+	show = show . unMod
 
 instance (Integral a, KnownNat m) => Enum (Mod a m) where
-	fromEnum (Mod a) = fromIntegral a
+	fromEnum = fromIntegral . unMod
 	toEnum = fromIntegral
 
 instance (Integral a, KnownNat m) => Num (Mod a m) where
-	(Mod a) + (Mod b) = fromIntegral $ a+b
-	(Mod a) * (Mod b) = fromIntegral $ a*b
-	abs (Mod a) = Mod $ abs a
-	signum (Mod a) = Mod $ signum a
-	fromInteger = Mod . fromInteger . (`mod` (natVal (Proxy :: Proxy m)))
-	negate (Mod a) = Mod $ (fromInteger $ natVal (Proxy :: Proxy m))-a
+	(+) = (fromIntegral .) . ((+) `on` unMod)
+	(*) = (fromIntegral .) . ((*) `on` unMod)
+	abs = modMap abs
+	signum = modMap signum
+	fromInteger = Mod . fromInteger . flip mod (natVal (Proxy :: Proxy m))
+	negate = modMap $ flip subtract $ fromInteger $ natVal (Proxy :: Proxy m)
 
 instance (Integral a, Ord a, KnownNat m) => Real (Mod a m) where
-	toRational (Mod a) = (toInteger a) % 1
+	toRational = (% 1) . toInteger . unMod
 
 instance (Integral a, KnownNat m) => Integral (Mod a m) where
-	(Mod a) `quotRem` (Mod b) = (Mod *** Mod) $ a `quotRem` b
-	toInteger (Mod n) = toInteger n
+	quotRem = ((Mod *** Mod) .) . (quotRem `on` unMod)
+	toInteger = toInteger . unMod

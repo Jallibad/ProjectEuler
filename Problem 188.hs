@@ -1,4 +1,6 @@
-﻿import MathFunctions ((↑↑))
+﻿{-# LANGUAGE DataKinds #-}
+
+import MathFunctions ((↑↑))
 import ModularArithmetic (Mod)
 
-main = print (1777 ↑↑ 1855 :: Mod Integer 100000000)
+main = print (1777 ↑↑ 1855 :: Mod Int 100000000)

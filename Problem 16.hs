@@ -1,3 +1,3 @@
-import Data.Char (digitToInt)
+import MathFunctions (digits)
 
-main = print $ sum $ map digitToInt $ show $ 2^1000
+main = print $ sum $ digits $ 2^1000

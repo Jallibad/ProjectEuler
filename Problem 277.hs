@@ -13,5 +13,5 @@ makeSteps n = case n `mod` 3 of
 		1 -> 'U' : (makeSteps $ (4*n+2) `div` 3)
 		2 -> 'd' : (makeSteps $ (2*n-1) `div` 3)
 
-main = print $ head $ filter (isPrefixOf seq . makeSteps) $ map (f $ reverse seq) [20371465..]
+main = print $ head $ filter (isPrefixOf seq . makeSteps) $ map (f $ reverse seq) [20371465, 20371465+3..]
 	where seq = "UDDDUdddDDUDDddDdDddDDUDDdUUDd"
