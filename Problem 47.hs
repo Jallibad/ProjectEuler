@@ -1,6 +1,14 @@
+import Control.Arrow
+import Data.List (genericLength)
 import MathFunctions (distinctPrimeFactors)
 
 distinctPrimeFactorsGenerator :: Int -> Int
-distinctPrimeFactorsGenerator d = fst $ head $ filter (all (==d) . take d . snd) $ zip [1..] $ iterate tail $ map (length . distinctPrimeFactors) [1..]
+distinctPrimeFactorsGenerator d = firstPart $ all (==d) . take d
 
-main = print $ distinctPrimeFactorsGenerator 4
+thing :: (Enum a, Num a) => [(a, [a])]
+thing = zip [1..] $ iterate tail $ map (genericLength . distinctPrimeFactors) [1..]
+
+firstPart :: (Enum a, Num a) => ([a] -> Bool) -> a
+firstPart = fst . head . flip filter thing . (snd >>>)
+
+main = print $ distinctPrimeFactorsGenerator 3

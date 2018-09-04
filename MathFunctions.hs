@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, TupleSections, BangPatterns #-}
+﻿{-# LANGUAGE ViewPatterns, TupleSections, BangPatterns #-}
 
 module MathFunctions where
 
@@ -24,9 +24,19 @@ applyIf :: (a -> a) -> Bool -> a -> a
 applyIf f True = f
 applyIf _ _ = id
 
+applyIf' :: (a -> a -> a) -> (a -> Bool) -> (a -> a) -> a -> a
+applyIf' f condition x y
+	| condition y = f y $ x y
+	| otherwise = x y
+
 unless :: a -> Bool -> Maybe a
 _ `unless` True	= Nothing
 v `unless` _	= Just v
+
+unless' :: (a -> b) -> (a -> Bool) -> a -> Maybe b
+unless' v f x
+	| f x = Nothing
+	| otherwise = Just $ v x
 
 isqrt :: Integral a => a -> a
 isqrt 0 = 0
@@ -77,14 +87,14 @@ initFactors :: Integral a => a -> Set.Set a
 initFactors = Set.deleteMax . Set.fromDistinctAscList . factors
 
 primeFactors :: Integral a => a -> [a]
-primeFactors = unfoldr $ \x ->
-				(id &&& div x $ head $ dropWhile (coprime x) primes) `unless` (x==1)
+primeFactors = unfoldr $ unless' nextFactor (==1)
+	where nextFactor x = id &&& div x $ head $ dropWhile (coprime x) primes
 
+distinctPrimeFactors :: Integral a => a -> [a]
 distinctPrimeFactors = nub . primeFactors
 
 factorial :: Integral a => a -> a
-factorial 0 = 1
-factorial n = product [1..n]
+factorial = product . enumFromTo 1
 
 factorials :: Integral a => [a]
 factorials = 1 : scanl1 (*) [1..]
@@ -92,11 +102,14 @@ factorials = 1 : scanl1 (*) [1..]
 digitFactorial :: Integral a => a -> a
 digitFactorial = sum . map factorial . digits
 
+digitSquare :: Integral a => a -> a
+digitSquare = sum . map (^2) . digits
+
 digits :: Integral a => a -> [a]
 digits = digits' 10
 
 digits' :: Integral a => a -> a -> [a]
-digits' m = reverse . unfoldr (\n -> (swap $ n `quotRem` m) `unless` (n==0))
+digits' = (reverse .) . unfoldr . flip unless' (==0) . (swap .) . flip quotRem
 
 combinatoric :: Integral (a) => a -> a -> a
 combinatoric n k = truncate $ product $ [(n+1-i) % i | i <- [1.. min k $ n-k]]
@@ -122,8 +135,7 @@ primitivePythagoreanTriples = [
 stern_brocot_sequence :: Integral a => (a -> a) -> a -> a
 stern_brocot_sequence _ 0 = 0
 stern_brocot_sequence _ 1 = 1
-stern_brocot_sequence f n = f halfN + if odd n then f (halfN+1) else 0
-	where halfN = n `div` 2
+stern_brocot_sequence f n = applyIf' ((+) . f . (+1) . flip div 2) odd (f . flip div 2) n
 
 stern_brocot_sequenceM :: (Integral a, Memoizable a) => a -> a
 stern_brocot_sequenceM = memoFix stern_brocot_sequence
