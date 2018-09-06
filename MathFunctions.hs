@@ -15,7 +15,6 @@ import Data.Ratio ((%))
 import qualified Data.Set as Set
 import Data.Tuple (swap)
 import ListFunctions (circulateList)
-import System.Random (getStdGen, Random, randomRs)
 
 andAll :: [a -> Bool] -> a -> Bool
 andAll = (. (&)) . flip all
@@ -57,20 +56,6 @@ isPrime (abs -> n) = all ((/=) 0 . mod n) [2..isqrt n]
 coprime :: Integral a => a -> a -> Bool
 coprime = ((/= 0) .) . mod
 
-isCircularPrime :: (Integral a, Show a) => a -> Bool
-isCircularPrime n
-	| n < 10 = isPrime n
-	| otherwise = null (intersect invalids s) && (all (isPrime . read) $ circulateList s)
-	where
-		invalids = "024568"
-		s = show n
-
-isTruncatablePrime :: (Integral a, Show a) => a -> Bool
-isTruncatablePrime = andAll [(>= 10), left, right]
-	where
-		left = all isPrime . takeWhile (/=0) . iterate (`div` 10)
-		right = all (isPrime . read) . init . tails . show
-
 primes :: Integral a => [a]
 primes = 2 : 3 : filter isPrime (concatMap (\k -> [6*k-1,6*k+1]) [1..])
 
@@ -110,6 +95,9 @@ digits = digits' 10
 
 digits' :: Integral a => a -> a -> [a]
 digits' = (reverse .) . unfoldr . flip unless' (==0) . (swap .) . flip quotRem
+
+digitsList :: Integral a => a -> [a] -> a
+digitsList b = sum . zipWith (\x y -> b^x*y) [0..] . reverse
 
 combinatoric :: Integral (a) => a -> a -> a
 combinatoric n k = truncate $ product $ [(n+1-i) % i | i <- [1.. min k $ n-k]]
@@ -158,18 +146,6 @@ multiplicativeOrder a n = head $ dropWhile (\x -> (modularPow a x n)/=1) [1..n]
 
 totient :: Integral a => a -> a
 totient n = genericLength $ filter (coprime n) [1..n]
-
-aksPrimality :: Integral a => a -> Bool
-aksPrimality n = (not $ perfectPower n) && (n <= r || step3) && step5
-	where
-		logSquared = truncate $ (logBase 2 $ fromIntegral n)^2
-		r = until (\r -> (not $ coprime n r) || (multiplicativeOrder n r)>logSquared) (+1) 2
-		step3 = all (\a -> a `mod` n /= 0) [2.. min r $ n-1]
-		maxA = truncate $ (sqrt $ fromIntegral $ totient r)*(logBase 2 $ fromIntegral n)
-		step5 = all (\a -> modularPow a n n == a) [1.. maxA]
-
-fermatTest :: (Integral a, Random a) => Int -> a -> IO Bool
-fermatTest k n = fmap (all (\a -> modularPow a (n-1) n == 1) . take k . randomRs (2,n-2)) getStdGen
 
 jacobiSymbol a' n
 	| a == 1 = 1

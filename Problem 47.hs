@@ -11,4 +11,4 @@ thing = zip [1..] $ iterate tail $ map (genericLength . distinctPrimeFactors) [1
 firstPart :: (Enum a, Num a) => ([a] -> Bool) -> a
 firstPart = fst . head . flip filter thing . (snd >>>)
 
-main = print $ distinctPrimeFactorsGenerator 3
+main = print $ distinctPrimeFactorsGenerator 4

@@ -1,5 +1,5 @@
 import ListFunctions (allEqual, differences, pick)
-import MathFunctions (isPrime)
+import PrimeFunctions (isPrime)
 import Data.List
 
 possibilities :: [[Int]]

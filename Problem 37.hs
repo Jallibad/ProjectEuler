@@ -1,4 +1,4 @@
-import MathFunctions (isTruncatablePrime)
+import PrimeFunctions (isTruncatablePrime)
 import Control.Applicative ((<$>), (<*>))
 
 possibilities :: [Int]
